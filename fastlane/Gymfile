@@ -1,0 +1,6 @@
+clean true
+output_directory "./"
+workspace "classi.xcworkspace"
+scheme "Staging"
+use_legacy_build_api false
+

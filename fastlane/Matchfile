@@ -1,0 +1,5 @@
+git_url "git@github.com:classi/certificates.git"
+type "development"
+app_identifier "jp.classi.classi"
+username "classi@classi.jp"
+

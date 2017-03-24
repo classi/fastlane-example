@@ -1,0 +1,11 @@
+scheme "ClassiTests"
+configuration "Staging"
+
+device "iPad Retina"
+workspace "classi.xcworkspace"
+
+open_report true
+clean true
+skip_build true
+output_types "html"
+

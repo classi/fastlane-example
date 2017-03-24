@@ -1,0 +1,9 @@
+app_identifier "jp.classi.classi"
+username "classi@classi.jp"
+
+force false
+skip_screenshots true
+skip_metadata true
+skip_binary_upload false
+automatic_release false
+
