@@ -1,5 +1,5 @@
 # fastlane-examples
-fastlane ios example by Classi Corp.
+fastlane example by Classi Corp.
 
 # Requirements
 
