@@ -7,7 +7,6 @@ platform :ios do
   default_payloads = [:lane, :test_result, :git_branch, :git_author]
 
   before_all do
-    # コミットログを控えておく
     changelog = changelog_from_git_commits_hs
   end
 
@@ -23,27 +22,27 @@ platform :ios do
   end
 
 
-  desc "Deploy a new version to the Fabric Beta"
+  desc "Deploy a new version to the Crashlytics Beta"
   lane :beta do
-    # 証明書のダウンロードとインストール
+    # Download and install certificate
     match(type: "development", force_for_new_devices: true)
 
-    # build number を更新
+    # Update build number
     increment_build_number(build_number: Time.now.strftime("%Y%m%d%H%M"))
 
-    # アプリアイコンに beta の文字を載せる
+    # Change application icon to beta version
     badge(shield: "#{get_version_number}-#{get_build_number}-blue", dark: true)
 
-    # コンパイルと ipa 作成
+    # Compiling and creating ipa file
     gym
 
-    # ipa, dSYMs を Artifacts に格納
+    # Ipa, dSYMs stored in Artifacts
     if is_ci?
       sh "cp #{lane_context[SharedValues::IPA_OUTPUT_PATH]} $CIRCLE_ARTIFACTS"
       sh "cp #{lane_context[SharedValues::DSYM_OUTPUT_PATH]} $CIRCLE_ARTIFACTS"
     end
 
-    # beta 配布
+    # Upload ipa file to crashslytics
     crashlytics(
       crashlytics_path: "Pods/Crashlytics/iOS/Crashlytics.framework",
       api_token: ENV['CRASHLYTICS_API_TOKEN'],
@@ -53,10 +52,10 @@ platform :ios do
       groups: "CLASSI_APP"
     )
 
-    # dSYMs を crashlytics に upload
+    # Upload dSYMs file to crashslytics
     upload_symbols_to_crashlytics
 
-    # slack に結果を通知
+    # notify slack
     payload = {"Git Commit" => changelog}
     payload["Circle Artifacts Url"] = ENV["CIRCLE_BUILD_URL"] + "#artifacts/containers/0" if is_ci?
     slack(
@@ -69,28 +68,29 @@ platform :ios do
 
   desc "Deploy a new version to the App Store"
   lane :release do
-    # 証明書のダウンロードとインストール
+    # Download and install certificate
     match(type: "appstore")
 
-    # build number を更新
+    # Update build number
     increment_build_number(build_number: Time.now.strftime("%Y%m%d%H%M"))
 
-    # コンパイルと ipa 作成
+    # Compiling and creating ipa file
     gym(scheme: "Release")
 
-    # ipa, dSYMs を Artifacts に格納
+    # Ipa, dSYMs stored in Artifacts
     if is_ci?
       sh "cp #{lane_context[SharedValues::IPA_OUTPUT_PATH]} $CIRCLE_ARTIFACTS"
       sh "cp #{lane_context[SharedValues::DSYM_OUTPUT_PATH]} $CIRCLE_ARTIFACTS"
     end
 
-    # ipa ファイルを iTunes Connect に提出
+    # Upload ipa file to iTunes Connect
     deliver
 
-    # dSYMs を crashlytics に upload
+    # Upload dSYMs file to crashslytics
     upload_symbols_to_crashlytics
 
-    # git tag を打つ、同じ version でなんども tag を打つ可能性があるので force する
+    # Create git tag
+    # Force push, since it may create tags in the same version many times.
     add_git_tag(
       tag: "v#{get_version_number}",
       message: "build_number: #{get_build_number} by fastlane\n\n#{changelog}",
@@ -98,6 +98,7 @@ platform :ios do
     )
     push_git_tags(force: true)
 
+    # notify slack
     payload = {"Git Commit" => changelog}
     slack(
       message: ":itunesconnect: Successfully uploaded a new App Store build",
@@ -107,7 +108,7 @@ platform :ios do
   end
 
 
-  desc "dSYMs を iTunesConnect から DL し crashylitics に upload する"
+  desc "Download dSYMs from iTunesConnect and upload to crashylitics"
   lane :refresh_dsyms do
     download_dsyms
     upload_symbols_to_crashlytics
@@ -122,7 +123,7 @@ platform :ios do
   end
 
 
-  desc "%h %s の commit log を返却する"
+  desc "Return  %h %s format commit log"
   lane :changelog_from_git_commits_hs do
     changelog_from_git_commits(
       between: ["HEAD^", "HEAD"],
@@ -131,25 +132,25 @@ platform :ios do
   end
 
 
-  desc "app_version を更新して release ブランチを GitHub に作成"
+  desc "Update app_version and create release branch in GitHub"
   desc "ex: fastlane release_branch version:1.0.0"
   lane :release_branch do |options|
-    # 引数に release version があることを確認
+    # Check arguments
     UI.user_error!("Required release version. ex: fastlane release_branch version:1.0.0") unless options[:version]
     branch = "release/#{options[:version]}"
 
-    # master branch に戻り更新する
+    # After updating master branch, create release branch
     sh("git checkout master && git pull origin master")
     sh("git checkout -b #{branch}")
 
-    # 引数で指定したアプリの version に更新しコミット
+    # Update the version of Info.plist and git commit
     increment_version_number(version_number: options[:version])
     commit_version_bump(
       message: "Create #{branch} branch.",
       xcodeproj: "classi.xcodeproj"
     )
 
-    # GitHub に Push し PullReqeust を作成する
+    # Push to GitHub and create Pull Reqeust
     push_to_git_remote
     create_pull_request(
       repo: "classi/classi_ios_app",
