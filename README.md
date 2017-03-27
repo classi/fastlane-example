@@ -25,10 +25,26 @@ ENV["SLACK_URL"] = "YOUR_SLACK_WEBHOOK_URL"
 
 # Usage
 
+## Test
+
 ```
 $ bundle exec fastlane test
+```
+
+## Upload to crashlytics beta
+
+```
 $ bundle exec fastlane beta
+```
+
+## Upload to iTunes Connect
+
+```
 $ bundle exec fastlane release
+
+## Create release branch
+
+```
 $ bundle exec fastlane release_branch version:2.0.0
 ```
 
