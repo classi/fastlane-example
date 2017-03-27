@@ -33,16 +33,16 @@ platform :ios do
     # Change application icon to beta version
     badge(shield: "#{get_version_number}-#{get_build_number}-blue", dark: true)
 
-    # Compiling and creating ipa file
+    # Compile
     gym
 
-    # Ipa, dSYMs stored in Artifacts
+    # Save ipa and dSYM
     if is_ci?
       sh "cp #{lane_context[SharedValues::IPA_OUTPUT_PATH]} $CIRCLE_ARTIFACTS"
       sh "cp #{lane_context[SharedValues::DSYM_OUTPUT_PATH]} $CIRCLE_ARTIFACTS"
     end
 
-    # Upload ipa file to crashslytics
+    # Upload ipa to crashslytics
     crashlytics(
       crashlytics_path: "Pods/Crashlytics/iOS/Crashlytics.framework",
       api_token: ENV['CRASHLYTICS_API_TOKEN'],
@@ -52,7 +52,7 @@ platform :ios do
       groups: "CLASSI_APP"
     )
 
-    # Upload dSYMs file to crashslytics
+    # Upload dSYM to crashslytics
     upload_symbols_to_crashlytics
 
     # notify slack
@@ -74,23 +74,23 @@ platform :ios do
     # Update build number
     increment_build_number(build_number: Time.now.strftime("%Y%m%d%H%M"))
 
-    # Compiling and creating ipa file
+    # Compile
     gym(scheme: "Release")
 
-    # Ipa, dSYMs stored in Artifacts
+    # Save ipa and dSYM
     if is_ci?
       sh "cp #{lane_context[SharedValues::IPA_OUTPUT_PATH]} $CIRCLE_ARTIFACTS"
       sh "cp #{lane_context[SharedValues::DSYM_OUTPUT_PATH]} $CIRCLE_ARTIFACTS"
     end
 
-    # Upload ipa file to iTunes Connect
+    # Upload ipa to iTunes Connect
     deliver
 
-    # Upload dSYMs file to crashslytics
+    # Upload dSYM to crashslytics
     upload_symbols_to_crashlytics
 
     # Create git tag
-    # Force push, since it may create tags in the same version many times.
+    # Force pushing because it may create the same tag more than once.
     add_git_tag(
       tag: "v#{get_version_number}",
       message: "build_number: #{get_build_number} by fastlane\n\n#{changelog}",
@@ -139,7 +139,7 @@ platform :ios do
     UI.user_error!("Required release version. ex: fastlane release_branch version:1.0.0") unless options[:version]
     branch = "release/#{options[:version]}"
 
-    # After updating master branch, create release branch
+    # Create release branch
     sh("git checkout master && git pull origin master")
     sh("git checkout -b #{branch}")
 

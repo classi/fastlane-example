@@ -1,4 +1,4 @@
-# fastlane-examples
+# fastlane-example
 fastlane example by Classi Corp.
 
 # Requirements
