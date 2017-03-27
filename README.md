@@ -41,6 +41,7 @@ $ bundle exec fastlane beta
 
 ```
 $ bundle exec fastlane release
+```
 
 ## Create release branch
 
