@@ -51,5 +51,5 @@ $ bundle exec fastlane release_branch version:2.0.0
 
 # Information for Japanese
 
-TODO: Wantedly URL.
+[fastlane を利用した iOS 継続的デリバリーの実践 \| Classi株式会社's Blog](https://www.wantedly.com/companies/classi/post_articles/57007)
 
