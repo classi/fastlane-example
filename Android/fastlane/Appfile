@@ -1,0 +1,3 @@
+json_key_file "app/key.json"
+package_name "jp.classi.classi"
+

@@ -1,0 +1,164 @@
+fastlane_version "2.24.0"
+
+default_platform :android
+
+import_from_git(
+  url: 'https://github.com/starhoshi/fastlane-example',
+  path: 'Util/Fastfile'
+)
+
+platform :android do
+  changelog = ""
+  default_payloads = [:lane, :test_result, :git_branch, :git_author]
+
+  before_all do
+    changelog = changelog_from_git_commits_hs
+
+    if is_ci?
+      sh('git config --global user.email "circleci@classi.jp"')
+      sh('git config --global user.name "circleci"')
+    end
+  end
+
+
+  desc "Submit a new Beta Build to Crashlytics Beta"
+  lane :beta do
+    # Update versionCode
+    increment_version_code(version_code: Time.now.to_i)
+
+    # Change application icon to beta version
+    badge(
+      shield: "#{get_version_name}-#{get_version_code}-blue",
+      dark: true,
+      glob: ENV["BADGE_GLOB"]
+    )
+
+    # Compile
+    gradle(
+      task: "assemble",
+      flavor: ENV["BETA_GRADLE_FLAVOR"],
+      build_type: ENV["BETA_GRADLE_BUILD_TYPE"]
+    )
+
+    # Save apk
+    if is_ci?
+      sh "cp #{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]} $CIRCLE_ARTIFACTS"
+    end
+
+    # https://github.com/fastlane/fastlane/issues/6325
+    sh("touch changelog.txt")
+    File.write("changelog.txt", changelog)
+
+    # Upload ipa to crashslytics
+    crashlytics(
+      api_token: ENV['CRASHLYTICS_API_TOKEN'],
+      build_secret: ENV['CRASHLYTICS_BUILD_SECRET'],
+      notes_path: "fastlane/changelog.txt",
+      groups: ENV["CRASHLYTICS_GROUPS"]
+    )
+
+    payload = {"Git Commit" => changelog}
+    payload["Circle Artifacts Url"] = ENV["CIRCLE_BUILD_URL"] + "#artifacts/containers/0" if is_ci?
+    slack(
+      channel: ENV["SLACK_CHANNEL"],
+      message: ":android: :crashlytics: Beta App successfully released!",
+      payload: payload,
+      default_payloads: default_payloads
+    )
+  end
+
+
+  desc "Deploy a new version to the Google Play"
+  lane :playstore do
+    if is_ci?
+      # Set key.json from environment variable
+      File.open("../app/key.json", "w") do |f|
+        f.puts(ENV['GOOGLE_PLAY_API_KEY_JSON'])
+      end
+    end
+
+    # Update versionCode
+    increment_version_code(version_code: Time.now.to_i)
+
+    # Compile
+    gradle(
+      task: "assemble",
+      flavor: ENV["PLAYSTORE_GRADLE_FLAVOR"],
+      build_type: ENV["PLAYSTORE_GRADLE_BUILD_TYPE"]
+    )
+
+    # Save apk
+    if is_ci?
+      sh "cp #{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]} $CIRCLE_ARTIFACTS"
+    end
+
+    # Upload apk to Play Store
+    supply(track: 'beta')
+
+    # Get diff from the last tag
+    sh("git tag -d v#{get_version_name} || echo")
+    diff = git_tag_diff
+
+    # Create git tag
+    # Force pushing because it may create the same tag more than once.
+    add_git_tag(
+      tag: "v#{get_version_name}",
+      message: "build_number: #{get_version_code} by fastlane\n\n#{diff}",
+      force: true
+    )
+    push_git_tags(force: true)
+
+    # notify slack
+    payload = {"Git Commit" => changelog}
+    slack(
+      channel: ENV["SLACK_CHANNEL"],
+      message: ":android: :googleplaystore: Successfully uploaded a new Google Play Store build",
+      payload: payload,
+      default_payloads: default_payloads
+    )
+  end
+
+
+  desc "Update app_version and create release branch in GitHub"
+  desc "ex: fastlane release_branch version:1.0.0"
+  lane :release_branch do |options|
+    # Check arguments
+    UI.user_error!("Required release version. ex: fastlane release_branch version:1.0.0") unless options[:version]
+    branch = "release/#{options[:version]}"
+
+    # Create release branch
+    sh("git checkout master && git pull origin master")
+    sh("git checkout -b #{branch}")
+
+    # Update versionName and git commit
+    increment_version_name(version_name: options[:version])
+    commit_android_version_bump(
+      message: "Create #{branch} branch."
+    )
+
+    # Push to GitHub and create Pull Reqeust
+    push_to_git_remote
+    create_pull_request(
+      repo: ENV["GITHUB_REPOSITORY"],
+      title: "#{branch}",
+      body: "release v#{options[:version]}"
+    )
+  end
+
+
+  error do |lane, exception|
+    slack(
+      message: exception.message,
+      success: false,
+      payload: {
+        "Circle Build Url" => ENV["CIRCLE_BUILD_URL"]
+      }
+    )
+  end
+
+
+  after_all do
+    reset_diff
+  end
+end
+

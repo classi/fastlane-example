@@ -1,0 +1,24 @@
+desc "Return %h %s format commit log"
+private_lane :changelog_from_git_commits_hs do
+  changelog_from_git_commits(
+    between: ["HEAD^", "HEAD"],
+    pretty: '%h %s'
+  )
+end
+
+
+desc "Return difference from last tag or first commit"
+private_lane :git_tag_diff do
+  from = last_git_tag || sh('git rev-list --max-parents=0 HEAD')[0,7]
+  changelog_from_git_commits(
+    between: [from, "HEAD"],
+    pretty: '%h %s'
+  )
+end
+
+
+desc "Reset diff"
+private_lane :reset_diff do
+  sh('cd $(git rev-parse --show-cdup) && git checkout .')
+end
+
