@@ -7,9 +7,6 @@ platform :ios do
   default_payloads = [:lane, :test_result, :git_branch, :git_author]
 
   before_all do
-    # ENV["CRASHLYTICS_API_TOKEN"] = ""
-    # ENV["CRASHLYTICS_BUILD_SECRET"] = ""
-    # ENV["SLACK_URL"] = ""
     ENV['DELIVER_ITMSTRANSPORTER_ADDITIONAL_UPLOAD_PARAMETERS'] = '-t DAV'
 
     changelog = changelog_from_git_commits_hs
