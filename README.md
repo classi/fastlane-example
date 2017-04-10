@@ -24,7 +24,7 @@ Fastfile:
 fastlane_version "2.19.2"
 
 import_from_git(
-  url: 'https://github.com/starhoshi/fastlane-example',
+  url: 'https://github.com/classi/fastlane-example',
   path: 'iOS/fastlane/Fastfile'
 )
 ```
@@ -37,7 +37,7 @@ Fastfile:
 fastlane_version "2.24.0"
 
 import_from_git(
-  url: 'https://github.com/starhoshi/fastlane-example',
+  url: 'https://github.com/classi/fastlane-example',
   path: 'Android/fastlane/Fastfile'
 )
 ```
