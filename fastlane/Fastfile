@@ -160,7 +160,7 @@ platform :ios do
 
 
   desc "Return %h %s format commit log"
-  lane :changelog_from_git_commits_hs do
+  private_lane :changelog_from_git_commits_hs do
     changelog_from_git_commits(
       between: ["HEAD^", "HEAD"],
       pretty: '%h %s'
