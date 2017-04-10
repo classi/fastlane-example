@@ -3,7 +3,7 @@ fastlane_version "2.19.2"
 default_platform :ios
 
 import_from_git(
-  url: 'https://github.com/starhoshi/fastlane-example',
+  url: 'https://github.com/classi/fastlane-example',
   path: 'Util/Fastfile'
 )
 
