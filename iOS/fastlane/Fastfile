@@ -98,6 +98,10 @@ platform :ios do
     # Upload dSYM to crashslytics
     upload_symbols_to_crashlytics
 
+    # Get diff from the last tag
+    sh("git tag -d v#{get_version_number} || echo")
+    diff = git_tag_diff
+
     # Create git tag
     # Force pushing because it may create the same tag more than once.
     add_git_tag(
@@ -144,7 +148,7 @@ platform :ios do
     sh("git checkout master && git pull origin master")
     sh("git checkout -b #{branch}")
 
-    # Update the version of Info.plist and git commit
+    # Update version_number and git commit
     increment_version_number(version_number: options[:version])
     commit_version_bump(
       message: "Create #{branch} branch.",
@@ -173,7 +177,7 @@ platform :ios do
 
 
   after_all do
-    sh('cd $(git rev-parse --show-cdup) && git checkout .')
+    reset_diff
   end
 end
 

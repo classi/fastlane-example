@@ -16,3 +16,9 @@ private_lane :git_tag_diff do
   )
 end
 
+
+desc "Reset diff"
+private_lane :reset_diff do
+  sh('cd $(git rev-parse --show-cdup) && git checkout .')
+end
+
