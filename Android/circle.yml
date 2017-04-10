@@ -1,0 +1,47 @@
+machine:
+  java:
+    version: oraclejdk8
+  timezone:
+      Asia/Tokyo
+  environment:
+    ANDROID_HOME : /usr/local/android-sdk-linux
+    ANDROID_TARGET : android-24
+    ANDROID_ABI : armeabi-v7a
+
+dependencies:
+  pre:
+    - mkdir $ANDROID_HOME/licenses
+    - echo "android-sdk-license" >> $ANDROID_HOME/licenses/android-sdk-license
+
+    - echo y | android update sdk --all --no-ui --filter "tools"
+    - echo y | android update sdk --all --no-ui --filter "platform-tools"
+    - echo y | android update sdk --all --no-ui --filter $ANDROID_TARGET
+    - echo y | android update sdk --all --no-ui --filter "build-tools-24.0.3"
+    - echo y | android update sdk --all --no-ui --filter "extra-google-google_play_services"
+    - echo y | android update sdk --all --no-ui --filter "extra-google-m2repository"
+    - echo y | android update sdk --all --no-ui --filter "extra-android-m2repository"
+    - echo y | android update sdk --all --no-ui --filter "sys-img-${ANDROID_ABI}-${ANDROID_TARGET}"
+
+    - echo n | android create avd -f -n testing -t $ANDROID_TARGET --abi $ANDROID_ABI
+    - bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs=4 --retry=3 --without development
+
+  cache_directories:
+    - ~/.android
+  override:
+    - ./gradlew dependencies
+
+test:
+  override:
+    - echo "Nothing to do here"
+  post:
+
+deployment:
+  beta:
+    branch: master
+    commands:
+      - bundle exec fastlane beta --verbose
+  release:
+    branch: /release.*/
+    commands:
+      - bundle exec fastlane playstore --verbose
+
