@@ -1,24 +1,12 @@
-# fastlane-example
-fastlane example by Classi Corp.
+# fastlane iOS example
 
-Fastfile supports **both iOS and android**.
-
-# Description
-
-Fastfile is compatible with both iOS and android.
-For example, `bundle exec fastlane ios beta` or `bundle exec fastlane android playstore`.
-
-iOS Directory contains samples of Matchfile and Appfile.
-Android Directory also includes Appfile and so on.
-
-It will be a reference for the continuous delivery of iOS / Android.
-
+This is the environment setting necessary to run fastlane ios.
 
 # Requirements
 
 ## [Homebrew](https://brew.sh/)
 
-### iOS and Android
+### iOS
 
 ```
 $ brew install imagemagick
@@ -49,12 +37,6 @@ ENV["XCODEPROJ"] = "classi.xcodeproj"
 ENV["GITHUB_REPOSITORY"] = "classi/fastlane-example"
 ```
 
-### Android
-
-```
-
-```
-
 # Usage
 
 ## iOS
@@ -82,10 +64,4 @@ $ bundle exec fastlane release
 ```
 $ bundle exec fastlane release_branch version:2.0.0
 ```
-
-## Android
-
-# Information for Japanese
-
-[fastlane を利用した iOS 継続的デリバリーの実践 \| Classi株式会社's Blog](https://www.wantedly.com/companies/classi/post_articles/57007)
 
