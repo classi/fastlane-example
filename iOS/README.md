@@ -1,12 +1,10 @@
 # fastlane iOS example
 
-This is the environment setting necessary to run fastlane ios.
+This is setting to run fastlane for ios.
 
 # Requirements
 
 ## [Homebrew](https://brew.sh/)
-
-### iOS
 
 ```
 $ brew install imagemagick
@@ -14,8 +12,6 @@ $ brew install graphicsmagick
 ```
 
 ## Environment Variables
-
-### iOS
 
 ```
 ENV["DANGER_GITHUB_API_TOKEN"] = "YOUR_GITHUB_API_TOKEN"
@@ -39,27 +35,25 @@ ENV["GITHUB_REPOSITORY"] = "classi/fastlane-example"
 
 # Usage
 
-## iOS
-
-### Test
+## Test
 
 ```
 $ bundle exec fastlane test
 ```
 
-### Upload to crashlytics beta
+## Upload to crashlytics beta
 
 ```
 $ bundle exec fastlane beta
 ```
 
-### Upload to iTunes Connect
+## Upload to iTunes Connect
 
 ```
 $ bundle exec fastlane release
 ```
 
-### Create release branch
+## Create release branch
 
 ```
 $ bundle exec fastlane release_branch version:2.0.0
