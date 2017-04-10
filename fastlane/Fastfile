@@ -7,6 +7,11 @@ platform :ios do
   default_payloads = [:lane, :test_result, :git_branch, :git_author]
 
   before_all do
+    # ENV["CRASHLYTICS_API_TOKEN"] = ""
+    # ENV["CRASHLYTICS_BUILD_SECRET"] = ""
+    # ENV["SLACK_URL"] = ""
+    ENV['DELIVER_ITMSTRANSPORTER_ADDITIONAL_UPLOAD_PARAMETERS'] = '-t DAV'
+
     changelog = changelog_from_git_commits_hs
   end
 
@@ -15,8 +20,9 @@ platform :ios do
   lane :test do
     scan
     xcov(
-      workspace: "classi.xcworkspace",
-      scheme: "ClassiTests"
+      workspace: ENV["XCOV_WORKSPACE"],
+      scheme: ENV["XCOV_SCHEME"],
+      exclude_targets: ENV["XCOV_EXCLUDE_TARGETS"]
     )
     danger
   end
@@ -25,7 +31,7 @@ platform :ios do
   desc "Deploy a new version to the Crashlytics Beta"
   lane :beta do
     # Download and install certificate
-    match(type: "development", force_for_new_devices: true)
+    match(type: ENV["BETA_MATCH_TYPE"], force_for_new_devices: true)
 
     # Update build number
     increment_build_number(build_number: Time.now.strftime("%Y%m%d%H%M"))
@@ -49,7 +55,7 @@ platform :ios do
       build_secret: ENV['CRASHLYTICS_BUILD_SECRET'],
       ipa_path: lane_context[SharedValues::IPA_OUTPUT_PATH],
       notes: changelog,
-      groups: "CLASSI_APP"
+      groups: ENV["CRASHLYTICS_GROUPS"]
     )
 
     # Upload dSYM to crashslytics
@@ -59,6 +65,7 @@ platform :ios do
     payload = {"Git Commit" => changelog}
     payload["Circle Artifacts Url"] = ENV["CIRCLE_BUILD_URL"] + "#artifacts/containers/0" if is_ci?
     slack(
+      channel: ENV["SLACK_CHANNEL"],
       message: ":crashlytics: Beta App successfully released!",
       payload: payload,
       default_payloads: default_payloads
@@ -75,7 +82,7 @@ platform :ios do
     increment_build_number(build_number: Time.now.strftime("%Y%m%d%H%M"))
 
     # Compile
-    gym(scheme: "Release")
+    gym(scheme: ENV["RELEASE_GYM_SCHEME"])
 
     # Save ipa and dSYM
     if is_ci?
@@ -101,6 +108,7 @@ platform :ios do
     # notify slack
     payload = {"Git Commit" => changelog}
     slack(
+      channel: ENV["SLACK_CHANNEL"],
       message: ":itunesconnect: Successfully uploaded a new App Store build",
       payload: payload,
       default_payloads: default_payloads
@@ -123,15 +131,6 @@ platform :ios do
   end
 
 
-  desc "Return  %h %s format commit log"
-  lane :changelog_from_git_commits_hs do
-    changelog_from_git_commits(
-      between: ["HEAD^", "HEAD"],
-      pretty: '%h %s'
-    )
-  end
-
-
   desc "Update app_version and create release branch in GitHub"
   desc "ex: fastlane release_branch version:1.0.0"
   lane :release_branch do |options|
@@ -147,15 +146,34 @@ platform :ios do
     increment_version_number(version_number: options[:version])
     commit_version_bump(
       message: "Create #{branch} branch.",
-      xcodeproj: "classi.xcodeproj"
+      xcodeproj: ENV["XCODEPROJ"]
     )
 
     # Push to GitHub and create Pull Reqeust
     push_to_git_remote
     create_pull_request(
-      repo: "classi/classi_ios_app",
+      repo: ENV["GITHUB_REPOSITORY"],
       title: "#{branch}",
       body: "release v#{options[:version]}"
+    )
+  end
+
+
+  desc "Return %h %s format commit log"
+  private_lane :changelog_from_git_commits_hs do
+    changelog_from_git_commits(
+      between: ["HEAD^", "HEAD"],
+      pretty: '%h %s'
+    )
+  end
+
+
+  desc "Return difference from last tag or first commit"
+  private_lane :git_tag_diff do
+    from = last_git_tag || sh('git rev-list --max-parents=0 HEAD')[0,7]
+    changelog_from_git_commits(
+      between: [from, "HEAD"],
+      pretty: '%h %s'
     )
   end
 
@@ -168,6 +186,11 @@ platform :ios do
         "Circle Build Url" => ENV["CIRCLE_BUILD_URL"]
       }
     )
+  end
+
+
+  after_all do
+    sh('cd $(git rev-parse --show-cdup) && git checkout .')
   end
 end
 
