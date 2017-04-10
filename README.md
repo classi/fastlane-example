@@ -44,5 +44,6 @@ import_from_git(
 
 # Information for Japanese
 
-[fastlane を利用した iOS 継続的デリバリーの実践 \| Classi株式会社's Blog](https://www.wantedly.com/companies/classi/post_articles/57007)
+* [fastlane を利用した iOS 継続的デリバリーの実践 \| Classi株式会社's Blog](https://www.wantedly.com/companies/classi/post_articles/57007)
+* [Fastfile の import 機能を使い、複数のプロジェクトで共通の Fastfile を使う \- Qiita](http://qiita.com/star__hoshi/items/7b7d367cb0e0cab612cf)
 
