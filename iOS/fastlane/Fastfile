@@ -10,11 +10,20 @@ import_from_git(
 platform :ios do
   changelog = ""
   default_payloads = [:lane, :test_result, :git_branch, :git_author]
+  keychain = {name: "name", password: "password"}
 
   before_all do
     ENV['DELIVER_ITMSTRANSPORTER_ADDITIONAL_UPLOAD_PARAMETERS'] = '-t DAV'
 
     changelog = changelog_from_git_commits_hs
+
+    if is_ci?
+      create_keychain(
+        name: keychain[:name],
+        password: keychain[:password],
+        timeout: 1800
+      )
+    end
   end
 
 
@@ -33,7 +42,11 @@ platform :ios do
   desc "Deploy a new version to the Crashlytics Beta"
   lane :beta do
     # Download and install certificate
-    match(type: ENV["BETA_MATCH_TYPE"], force_for_new_devices: true)
+    if is_ci?
+      match(type: ENV["BETA_MATCH_TYPE"], force_for_new_devices: true, keychain_name: keychain[:name], keychain_password: keychain[:password])
+    else
+      match(type: ENV["BETA_MATCH_TYPE"], force_for_new_devices: true)
+    end
 
     # Update build number
     increment_build_number(build_number: Time.now.strftime("%Y%m%d%H%M"))
@@ -78,7 +91,11 @@ platform :ios do
   desc "Deploy a new version to the App Store"
   lane :release do
     # Download and install certificate
-    match(type: "appstore")
+    if is_ci?
+      match(type: "appstore", keychain_name: keychain[:name], keychain_password: [:password])
+    else
+      match(type: "appstore")
+    end
 
     # Update build number
     increment_build_number(build_number: Time.now.strftime("%Y%m%d%H%M"))
