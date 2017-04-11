@@ -43,7 +43,7 @@ platform :ios do
   lane :beta do
     # Download and install certificate
     if is_ci?
-      match(type: ENV["BETA_MATCH_TYPE"], force_for_new_devices: true, name: keychain[:name], password: keychain[:password])
+      match(type: ENV["BETA_MATCH_TYPE"], force_for_new_devices: true, keychain_name: keychain[:name], keychain_password: keychain[:password])
     else
       match(type: ENV["BETA_MATCH_TYPE"], force_for_new_devices: true)
     end
@@ -92,9 +92,9 @@ platform :ios do
   lane :release do
     # Download and install certificate
     if is_ci?
-      match(type: "appstore", force_for_new_devices: true, name: keychain[:name], password: keychain[:password])
+      match(type: "appstore", keychain_name: keychain[:name], keychain_password: [:password])
     else
-      match(type: "appstore", force_for_new_devices: true)
+      match(type: "appstore")
     end
 
     # Update build number
