@@ -92,7 +92,7 @@ platform :ios do
   lane :release do
     # Download and install certificate
     if is_ci?
-      match(type: "appstore", keychain_name: keychain[:name], keychain_password: [:password])
+      match(type: "appstore", keychain_name: keychain[:name], keychain_password: keychain[:password])
     else
       match(type: "appstore")
     end
