@@ -184,6 +184,7 @@ platform :ios do
 
   error do |lane, exception|
     slack(
+      channel: ENV["SLACK_CHANNEL"],
       message: exception.message,
       success: false,
       payload: {
