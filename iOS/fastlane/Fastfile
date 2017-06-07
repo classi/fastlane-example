@@ -98,7 +98,7 @@ platform :ios do
     end
 
     # Update build number
-    increment_build_number(build_number: Time.now.strftime("%Y%m%d%H%M"))
+    increment_build_number(build_number: Time.now.to_i.to_s[0..7])
 
     # Compile
     gym(scheme: ENV["RELEASE_GYM_SCHEME"])
