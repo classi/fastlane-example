@@ -54,7 +54,7 @@ platform :ios do
     increment_build_number(build_number: Time.now.to_i.to_s[0..7])
 
     # Change application icon to beta version
-    badge(shield: "#{get_version_number}-#{get_build_number}-blue", dark: true)
+    badge(dark: true)
 
     # Compile
     gym
