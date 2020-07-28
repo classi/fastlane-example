@@ -148,7 +148,7 @@ GEM
     httpclient (2.8.3)
     hurley (0.2)
     i18n (0.8.1)
-    json (2.0.3)
+    json (2.3.1)
     jwt (1.5.6)
     kramdown (1.13.2)
     little-plugger (1.1.4)
